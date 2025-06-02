@@ -1,74 +1,103 @@
-let questions = [];
-let currentQuestion = 0;
-let timeLeft = 360;
-let interval;
+document.addEventListener('DOMContentLoaded', () => {
+  let currentQuestionIndex = 0;
+  let timeLeft = 360; // 6 minutos en segundos
+  let timerInterval;
 
-const startBtn = document.getElementById('startBtn');
-const menu = document.getElementById('menu');
-const game = document.getElementById('game');
-const questionEl = document.getElementById('question');
-const answersEl = document.querySelectorAll('.answer');
-const resultEl = document.getElementById('result');
-const timerEl = document.getElementById('timer');
+  const startBtn = document.getElementById('startBtn');
+  const menu = document.getElementById('menu');
+  const game = document.getElementById('game');
+  const timerDisplay = document.getElementById('timer');
+  const questionEl = document.getElementById('question');
+  const answersContainer = document.getElementById('answers');
+  const resultEl = document.getElementById('result');
 
-function startGame() {
-  questions = shuffle([...questionBank]);
-  currentQuestion = 0;
-  timeLeft = 360;
-  menu.classList.add('hidden');
-  game.classList.remove('hidden');
-  interval = setInterval(updateTimer, 1000);
-  showQuestion();
-}
-
-function updateTimer() {
-  timeLeft--;
-  let minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-  let seconds = (timeLeft % 60).toString().padStart(2, '0');
-  timerEl.textContent = `Tiempo restante: ${minutes}:${seconds}`;
-
-  if (timeLeft <= 0) {
-    clearInterval(interval);
-    showResult("¡Tiempo agotado!");
-  }
-}
-
-function showQuestion() {
-  if (currentQuestion >= questions.length) {
-    clearInterval(interval);
-    showResult("¡Juego terminado!");
-    return;
-  }
-
-  const q = questions[currentQuestion];
-  questionEl.textContent = q.question;
-  answersEl.forEach(btn => {
-    const letter = btn.dataset.letter;
-    btn.textContent = q.answers[letter];
-    btn.onclick = () => checkAnswer(letter);
+  startBtn.addEventListener('click', () => {
+    console.log('Botón Comenzar presionado');
+    startGame();
   });
-}
 
-function checkAnswer(letter) {
-  const correct = questions[currentQuestion].correct;
-  if (letter === correct) {
-    resultEl.textContent = "¡Correcto!";
-  } else {
-    resultEl.textContent = `Incorrecto. Respuesta correcta: ${correct}`;
+  for (const btn of answersContainer.children) {
+    btn.addEventListener('click', selectAnswer);
   }
-  currentQuestion++;
-  setTimeout(() => {
-    resultEl.textContent = "";
+
+  function startGame() {
+    menu.classList.add('hidden');
+    game.classList.remove('hidden');
+    currentQuestionIndex = 0;
+    timeLeft = 360;
+    resultEl.textContent = '';
     showQuestion();
-  }, 1000);
-}
-
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+    startTimer();
   }
-  return array;
-}
 
-startBtn.addEventListener('click', startGame);
+  function startTimer() {
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        endGame();
+      }
+      updateTimerDisplay();
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+    const seconds = String(timeLeft % 60).padStart(2, '0');
+    timerDisplay.textContent = `Tiempo restante: ${minutes}:${seconds}`;
+  }
+
+  function showQuestion() {
+    const currentQuestion = questions[currentQuestionIndex];
+    console.log('Mostrando pregunta:', currentQuestion);
+    questionEl.textContent = currentQuestion.question;
+
+    for (const btn of answersContainer.children) {
+      const letter = btn.getAttribute('data-letter');
+      btn.textContent = `${letter}: ${currentQuestion.answers[letter]}`;
+      btn.disabled = false;
+      btn.classList.remove('correct', 'wrong');
+    }
+    resultEl.textContent = '';
+  }
+
+  function selectAnswer(e) {
+    const selectedLetter = e.target.getAttribute('data-letter');
+    console.log('Respuesta seleccionada:', selectedLetter);
+    const currentQuestion = questions[currentQuestionIndex];
+
+    for (const btn of answersContainer.children) {
+      btn.disabled = true;
+    }
+
+    if (selectedLetter === currentQuestion.correct) {
+      resultEl.textContent = '¡Correcto!';
+      e.target.classList.add('correct');
+    } else {
+      resultEl.textContent = `Incorrecto. La respuesta correcta era: ${currentQuestion.correct}`;
+      e.target.classList.add('wrong');
+      for (const btn of answersContainer.children) {
+        if (btn.getAttribute('data-letter') === currentQuestion.correct) {
+          btn.classList.add('correct');
+        }
+      }
+    }
+
+    setTimeout(() => {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        showQuestion();
+      } else {
+        endGame();
+      }
+    }, 1500);
+  }
+
+  function endGame() {
+    clearInterval(timerInterval);
+    game.classList.add('hidden');
+    menu.classList.remove('hidden');
+    alert('El juego ha terminado. ¡Gracias por jugar!');
+  }
+});
