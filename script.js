@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   let currentQuestionIndex = 0;
-  let timeLeft = 360; // 6 minutos en segundos
+  let timeLeft = 360; // 6 minutos
   let timerInterval;
 
   const startBtn = document.getElementById('startBtn');
@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const resultEl = document.getElementById('result');
 
   startBtn.addEventListener('click', () => {
-    console.log('Botón Comenzar presionado');
     startGame();
   });
 
@@ -50,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function showQuestion() {
     const currentQuestion = questions[currentQuestionIndex];
-    console.log('Mostrando pregunta:', currentQuestion);
     questionEl.textContent = currentQuestion.question;
 
     for (const btn of answersContainer.children) {
@@ -64,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function selectAnswer(e) {
     const selectedLetter = e.target.getAttribute('data-letter');
-    console.log('Respuesta seleccionada:', selectedLetter);
     const currentQuestion = questions[currentQuestionIndex];
 
     for (const btn of answersContainer.children) {
